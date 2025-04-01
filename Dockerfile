@@ -1,12 +1,14 @@
 # Usa la imagen oficial de Python
-FROM python:3.10
+FROM python:3.10-alpine
+
 
 # Instala dependencias del sistema
-RUN apt update && apt install -y \
-    libmariadb3 \
-    libmariadb-dev-compat \
-    libmariadb-dev \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache \
+    mariadb-connector-c \
+    mariadb-dev \
+    gcc \
+    musl-dev \
+    python3-dev
 
 # Establece el directorio de trabajo
 WORKDIR /app
