@@ -42,7 +42,7 @@ urlpatterns = [
     path('inicio/', include('inicio.urls')),
     path('empresas/', include('empresas.urls')),
     path('campanias/', include('campanias.urls')),
-    path('api/webhooks/', include('webhooks.urls')),
+    path('webhooks/', include('webhooks.urls')),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ]
 

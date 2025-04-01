@@ -10,6 +10,8 @@ from .services.message_handler import handle_incoming_message
 from drf_yasg.views import get_schema_view
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+import os
+WEBHOOK_VERIFY_TOKEN = os.getenv("WEBHOOK_VERIFY_TOKEN", "default_token")
 
 class VerifyWebhookView(APIView):
     permission_classes = [AllowAny]
@@ -89,20 +91,22 @@ class WhatsAppWebhookView(APIView):
             return Response({"error": "Invalid payload", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         data = serializer.validated_data
-        entry = data['entry'][0]
-        changes = entry['changes'][0]
-        value = changes['value']
-        
+        entry = data.get('entry', [{}])[0]
+        changes = entry.get('changes', [{}])[0]
+        value = changes.get('value', {})
+
         messages = value.get('messages', [])
         contacts = value.get('contacts', [])
+
 
         if messages and contacts:
             message = messages[0]
             sender_info = contacts[0]
-            handle_incoming_message(message, sender_info)
-            
-            return Response({"status": "Message processed successfully"}, status=status.HTTP_200_OK)
-        
+            try:
+                handle_incoming_message(message, sender_info)
+                return Response({"status": "Message processed successfully"}, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response({"error": "Error processing message", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({"status": "No messages to process"}, status=status.HTTP_200_OK)
 
 
