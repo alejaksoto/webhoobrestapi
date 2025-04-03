@@ -1,12 +1,16 @@
 import requests
 from django.conf import settings
+import os
+WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN", "WHATSAPP_TOKEN")
+BUSINESS_PHONE = os.getenv("BUSINESS_PHONE", "BUSINESS_PHONE")
+
 
 class WhatsAppService:
     @staticmethod
     def send_message(to, body):
-        url = "https://graph.facebook.com/v22.0/{BUSINESS_PHONE}/messages".format(settings.WHATSAPP_BUSINESS_ID)
+        url = f'https://graph.facebook.com/v22.0/{BUSINESS_PHONE}/messages'
         headers = {
-            "Authorization": f"Bearer {settings.WHATSAPP_ACCESS_TOKEN}",
+            "Authorization": f"Bearer {WHATSAPP_TOKEN}",
             "Content-Type": "application/json"
         }
         data = {

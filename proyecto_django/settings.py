@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-3wo00@h6^f=s_tbu1h-fjiy#-81=8ni)^^x+-+0ovbzevpi9q3'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*', '127.0.0.1', 'localhost']
 Token_Whatsapp= 'EAALuSgfSXl0BO3ZAZCKDixluR32bIlkV6jG0rAvKlLymDzFLxbBIjnuriTQicuAcgnFPqWIccZCzaPuxyFztMKt4uD2tDz9BGJEv5kwfS5iZAzrkPsESoR9a8m5FE7itEOZCNGSJxePEASToye4UvcBumzpWHUJAYPLWYiq8Ig6WTU2gggyf6i6JGHtsTB8ZCVTu1ZALudyXjxnLaK5AEj22JxNZCZCZA8iLCr0pU4yPuZB'
@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'corsheaders',
     'inicio',
     'campanias',
     'empresas',
@@ -43,6 +44,7 @@ REST_FRAMEWORK = {
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -51,8 +53,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
 ]
-
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CORS_ALLOWED_ORIGINS = True
 ROOT_URLCONF = 'proyecto_django.urls'
 
 TEMPLATES = [
