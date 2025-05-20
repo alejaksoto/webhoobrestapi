@@ -129,9 +129,24 @@ window.launchWhatsAppSignup = () => {
  */
 const fbLoginCallback = (response) => {
     if (response.authResponse) {
-        const code = response.authResponse.code;
-        console.log('Respuesta de inicio de sesión: ', code); // Log de código de respuesta
+        const accessToken = response.authResponse.accessToken;
+        console.log('Access token recibido:', accessToken);
+
+        // Enviar access token a tu backend usando process_token
+        fetch('/process_token/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+            },
+            body: JSON.stringify({ code: accessToken }) // process_token espera 'code'
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log('Respuesta del backend:', data);
+            // redirigir o mostrar feedback
+        });
     } else {
-        console.log('Error en la respuesta: ', response); // Log de error en la autenticación
+        console.log('Error en la respuesta:', response);
     }
 };

@@ -127,11 +127,26 @@ window.launchWhatsAppSignup = () => {
  * Callback para manejar la respuesta del inicio de sesión en Facebook.
  * @param {Object} response - Objeto de respuesta de autenticación
  */
-const fbLoginCallback = (response) => {
+ const fbLoginCallback = (response) => {
     if (response.authResponse) {
-        const code = response.authResponse.code;
-        console.log('Respuesta de inicio de sesión: ', code); // Log de código de respuesta
+        const accessToken = response.authResponse.accessToken;
+        console.log('Access token recibido:', accessToken);
+
+        // Enviar access token a tu backend
+        fetch('/facebook-login/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(), // si tienes protección CSRF
+            },
+            body: JSON.stringify({ access_token: accessToken })
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log('Respuesta del backend:', data);
+            // redirigir o mostrar feedback
+        });
     } else {
-        console.log('Error en la respuesta: ', response); // Log de error en la autenticación
+        console.log('Error en la respuesta:', response);
     }
 };

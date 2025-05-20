@@ -7,6 +7,8 @@ from rest_framework import generics, status, response
 from django.views.decorators.csrf import csrf_exempt
 import requests
 import empresas
+from .models import Usuario  # Asegúrate de importar tu modelo
+from empresas.models import Credenciales_Empresa, Empresa  # Importa los modelos correctos
 
 logger = logging.getLogger(__name__)
 API_TOKEN ="7850AHMCUMROS792O012092928391" 
@@ -162,24 +164,78 @@ def whatsapp_message_handler(request):
 @csrf_exempt
 def process_token(request):
     """
-    Procesa el token recibido desde una solicitud.
+    Procesa el token recibido desde una solicitud y lo almacena en la tabla Credenciales_Empresa.
     """
     if request.method == "POST":
         try:
             body = json.loads(request.body)
             code = body.get("code")
+            empresa_id = body.get("empresa_id")  # Puedes enviar este dato desde el frontend si lo tienes
 
             if not code:
                 return JsonResponse({"error": "Falta el código de autenticación."}, status=400)
 
-            logger.info(f"Código recibido: {code}")
+            # Intercambiar el code por access_token y otros datos
+            url = "https://graph.facebook.com/v21.0/oauth/access_token"
+            params = {
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": "TU_REDIRECT_URI",  # Debe coincidir con el configurado en Facebook
+                "client_id": "TU_APP_ID",
+                "client_secret": "TU_APP_SECRET"
+            }
+            fb_response = requests.get(url, params=params)
+            if fb_response.status_code != 200:
+                return JsonResponse({"error": "No se pudo intercambiar el code."}, status=400)
+            fb_data = fb_response.json()
+            access_token = fb_data.get("access_token")
+            token_expiracion = fb_data.get("expires_in", "")  # Si está disponible
 
-            # Simulación de generación de token de acceso
-            fake_access_token = "FAKE_ACCESS_TOKEN"
-            return JsonResponse({"success": True, "accessToken": fake_access_token})
+            # Aquí puedes hacer otra petición para obtener datos como whatsapp_id, business_id, webhook, etc.
+            info_response = requests.get(
+                'https://graph.facebook.com/v21.0/me',
+                headers={'Authorization': f'Bearer {access_token}'}
+            )
+            info_data = info_response.json()
+            whatsapp_id = info_data.get('id')
+            business_id = info_data.get('business_id')
 
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Formato de JSON inválido."}, status=400)
+            # Busca la empresa (ajusta la lógica según tu flujo)
+            if empresa_id:
+                empresa = Empresa.objects.filter(id=empresa_id).first()
+            else:
+                empresa = Empresa.objects.first()  # O busca por algún parámetro relevante
+
+            if not empresa:
+                return JsonResponse({"error": "No se encontró una empresa para asociar el token."}, status=400)
+
+            # Guarda el access_token y otros datos en Credenciales_Empresa
+            cred, creado = Credenciales_Empresa.objects.update_or_create(
+                Empresa_id=empresa,
+                defaults={
+                    "access_token": access_token,
+                    "token_expiracion": token_expiracion,
+                    "whatsapp_id": whatsapp_id,  # Asegúrate de obtener este dato antes
+                    "business_id": business_id,  # Descomenta si obtienes este dato
+                    # "webhook": "TU_WEBHOOK_URL", # Ajusta según tu lógica
+                    "app_id": params["client_id"],
+                    "client_secret": params["client_secret"],
+                }
+            )
+
+            # Comparte la línea de crédito si tienes ambos datos
+            if empresa.allocation_configuration_id and cred.whatsapp_id:
+                credit_response = share_credit_line_with_customer(empresa, cred.whatsapp_id)
+            else:
+                credit_response = {"error": "Faltan datos para compartir la línea de crédito."}
+
+            return JsonResponse({
+                "success": True,
+                "accessToken": access_token,
+                "credenciales_id": cred.id,
+                "credit_line_response": credit_response
+            })
+
         except Exception as e:
             logger.error(f"Error procesando el token: {str(e)}")
             return JsonResponse({"error": "Error al procesar el token."}, status=500)
@@ -455,4 +511,20 @@ def meta_callback(request):
     except Exception as e:
         logger.error(f"Error en el callback de Meta: {str(e)}")
         return HttpResponse("Error interno del servidor.", status=500)
+
+import requests
+
+def share_credit_line_with_customer(empresa, whatsapp_id):
+    """
+    Comparte la línea de crédito de la empresa con el WABA del cliente.
+    """
+    credit_line_id = empresa.allocation_configuration_id
+    access_token = "TU_SYSTEM_USER_ACCESS_TOKEN"  # Usa el token de tu usuario del sistema de Meta
+    url = f"https://graph.facebook.com/v21.0/{credit_line_id}/shared_credit"
+    payload = {
+        "waba_id": whatsapp_id,
+        "access_token": access_token
+    }
+    response = requests.post(url, data=payload)
+    return response.json()
 

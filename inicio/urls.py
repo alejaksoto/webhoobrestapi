@@ -11,6 +11,7 @@ urlpatterns = [
     path('register-phone/', views.register_phone_number, name='register_phone_number'),
     path('process_signup_event/', views.process_signup_event, name='process_signup_event'),
     path('meta-callback/', views.meta_callback, name='meta_callback'),
+    path('process_token/', views.process_token, name='process_token'),
     #path('webhooks', webhooks.webhooks, name='webhooks'),
     #path('webhook', webhooks.webhook, name='webhook'),
 ]

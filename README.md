@@ -12,6 +12,8 @@ cd .\proyecto_django\
 python manage.py startapp inicio
 6. ejecutar el proyecto , validando su instalación
 python manage.py runserver
+--se debe ejecutar este comando para actualizar los archivos staticos en el general
+python manage.py collectstatic
 -- se debe ejecutar este comando cuando se realice modificaciones dentro de settings
 python manage.py migrate
 --comando para ver los paquetes instalados

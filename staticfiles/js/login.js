@@ -1,7 +1,6 @@
 /**
  * Inicialización del SDK de Facebook para su uso en autenticación y eventos de la aplicación.
  */
-<script async      defer crossorigin="anonymous"     src="https://connect.facebook.net/en_US/sdk.js"></script>
 window.fbAsyncInit = function () {
     FB.init({
         appId: '530977999838510', // ID de la aplicación configurada en Facebook Developer
@@ -130,9 +129,24 @@ window.launchWhatsAppSignup = () => {
  */
 const fbLoginCallback = (response) => {
     if (response.authResponse) {
-        const code = response.authResponse.code;
-        console.log('Respuesta de inicio de sesión: ', code); // Log de código de respuesta
+        const accessToken = response.authResponse.accessToken;
+        console.log('Access token recibido:', accessToken);
+
+        // Enviar access token a tu backend
+        fetch('/facebook-login/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(), // si tienes protección CSRF
+            },
+            body: JSON.stringify({ access_token: accessToken })
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log('Respuesta del backend:', data);
+            // redirigir o mostrar feedback
+        });
     } else {
-        console.log('Error en la respuesta: ', response); // Log de error en la autenticación
+        console.log('Error en la respuesta:', response);
     }
 };
