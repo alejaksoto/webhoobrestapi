@@ -1,6 +1,7 @@
 /**
  * Inicialización del SDK de Facebook para su uso en autenticación y eventos de la aplicación.
  */
+<script async      defer crossorigin="anonymous"     src="https://connect.facebook.net/en_US/sdk.js"></script>
 window.fbAsyncInit = function () {
     FB.init({
         appId: '530977999838510', // ID de la aplicación configurada en Facebook Developer

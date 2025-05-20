@@ -10,6 +10,7 @@ from .services.message_handler import handle_incoming_message
 from drf_yasg.views import get_schema_view
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.http import HttpResponse
 import os
 WEBHOOK_VERIFY_TOKEN = os.getenv("WEBHOOK_VERIFY_TOKEN", "default_token")
 
@@ -56,8 +57,10 @@ class VerifyWebhookView(APIView):
         if not all([hub_mode, hub_verify_token, hub_challenge]):
             return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if hub_mode == "subscribe" and hub_verify_token == settings.WEBHOOK_VERIFY_TOKEN:
-            return Response(hub_challenge, content_type="text/plain", status=status.HTTP_200_OK)
+        if hub_mode == "subscribe" and hub_verify_token == "Claro2025":
+            #return Response(hub_challenge, content_type="text/plain", status=status.HTTP_200_OK)
+            return HttpResponse(hub_challenge, content_type="text/plain", status=status.HTTP_200_OK)
+        
 
         return Response({"error": "Invalid verify token"}, status=status.HTTP_403_FORBIDDEN)
 
