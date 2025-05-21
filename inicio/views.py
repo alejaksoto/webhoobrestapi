@@ -95,72 +95,9 @@ def whatsapp_verify(request):
         logging.error(f"Error inesperado en la verificación de WhatsApp: {str(e)}")
         return HttpResponse("Error interno del servidor.", status=500)
 
-# Vista para procesar mensajes entrantes de WhatsApp y responder con el servicio GPT y utilidades adicionales.
-# Esta función necesita refactorización para el manejo robusto de errores y modularidad.
-#def whatsapp_message(request):
-    """
-    Procesa mensajes entrantes de WhatsApp y responde mediante servicios adicionales.
-
-    :param request: Objeto HttpRequest que contiene el cuerpo del mensaje JSON.
-    :return: HttpResponse indicando la recepción del evento.
-    """
-    try:
-        body = json.loads(request.body)
-        entry = body["entry"][0]
-        changes = entry["changes"][0]
-        value = changes["value"]
-        message = value["messages"][0]
-        number = message["from"]
-
-        text = util.GetTextUser(message)
-        responseChatgpt = chatgptservice.getResponse(text)
-
-        if responseChatgpt != "error":
-            data = util.TextMessage(responseChatgpt, number)
-        else:
-            data = util.TextMessage("Lo siento ocurrió un problema", number)
-
-        whatsappservice.SendMessageWhatsapp(data)
-        return HttpResponse("EVENT_RECEIVED")
-    except Exception as e:
-        logger.error(f"Error procesando mensaje de WhatsApp: {str(e)}")
-        return HttpResponse("EVENT_RECEIVED")
-
-@csrf_exempt
-def whatsapp_message_handler(request):
-    """
-    Procesa mensajes entrantes de WhatsApp y responde con mensajes personalizados.
-    """
-    if request.method == "POST":
-        try:
-            body = json.loads(request.body.decode("utf-8"))
-            entry = body.get("entry", [{}])[0]
-            changes = entry.get("changes", [{}])[0]
-            value = changes.get("value", {})
-            messages = value.get("messages", [{}])
-
-            if not messages:
-                return JsonResponse({"status": "No messages to process"}, status=200)
-
-            message = messages[0]
-            number = message.get("from")
-            text = message.get("text", {}).get("body", "Mensaje vacío")
-
-            # Simulación de respuesta personalizada
-            response_text = f"Recibimos tu mensaje: '{text}'"
-
-            # Enviar respuesta (simulado)
-            send_message_view(number, response_text)
-
-            return JsonResponse({"status": "EVENT_RECEIVED"}, status=200)
-
-        except Exception as e:
-            logger.error(f"Error procesando mensaje de WhatsApp: {str(e)}")
-            return JsonResponse({"error": str(e)}, status=500)
-    else:
-        return HttpResponse("Método no permitido", status=405)
     
-
+#vista para procesar la respuesta despues del registro embebido
+# Esta vista se encarga de recibir el token de acceso y otros datos necesarios para la integración con WhatsApp.
 @csrf_exempt
 def process_token(request):
     """
@@ -181,8 +118,8 @@ def process_token(request):
                 "grant_type": "authorization_code",
                 "code": code,
                 "redirect_uri": "TU_REDIRECT_URI",  # Debe coincidir con el configurado en Facebook
-                "client_id": "TU_APP_ID",
-                "client_secret": "TU_APP_SECRET"
+                "client_id": "530977999838510",
+                "client_secret": {{API_TOKEN}},
             }
             fb_response = requests.get(url, params=params)
             if fb_response.status_code != 200:
