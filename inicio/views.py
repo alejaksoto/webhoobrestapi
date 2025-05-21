@@ -519,7 +519,7 @@ def share_credit_line_with_customer(empresa, whatsapp_id):
     Comparte la línea de crédito de la empresa con el WABA del cliente.
     """
     credit_line_id = empresa.allocation_configuration_id
-    access_token = "TU_SYSTEM_USER_ACCESS_TOKEN"  # Usa el token de tu usuario del sistema de Meta
+    access_token = "EAAHi6ZCMQXS4BO4JSkIZC6fzubP0sZBlnTH0C5gZB11fjuGM8R1otyh6QQnisxtivLnEX4fuhbcoJZBOtayHwuOll6JuFegZCxMZAPbgBUIrJqd58P1uyc9vAkQDs2q4bsxTrNcnV73wPD0gqXDFGHiRteZCjOCgKwVqrSoALBEBpAffhJ2g0TiNz0u1Wu1To0qovwZDZD"  # Usa el token de tu usuario del sistema de Meta
     url = f"https://graph.facebook.com/v21.0/{credit_line_id}/shared_credit"
     payload = {
         "waba_id": whatsapp_id,
