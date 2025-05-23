@@ -56,7 +56,11 @@ MIDDLEWARE = [
     
 ]
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-CORS_ALLOWED_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # si tu frontend está ahí
+    "http://127.0.0.1:3000",
+]
+
 ROOT_URLCONF = 'proyecto_django.urls'
 
 TEMPLATES = [
