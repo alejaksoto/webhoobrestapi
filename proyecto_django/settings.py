@@ -91,7 +91,7 @@ DATABASES = {
         'NAME': 'midb',
         'USER': 'mayra.soto',
         'PASSWORD': 'Claro2025*',
-        'HOST': 'localhost',
+        'HOST': 'host.docker.internal',
         'PORT': '3306',
         'OPTIONS': {
             'charset': 'utf8mb4',

@@ -23,7 +23,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Exponer el puerto de la aplicación
+
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+
 EXPOSE 8000
 
+ENTRYPOINT ["/entrypoint.sh"]
 # Ejecutar migraciones y levantar el servidor con Gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "proyecto_django.wsgi:application"]
+
