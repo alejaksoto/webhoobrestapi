@@ -12,16 +12,16 @@ window.fbAsyncInit = function () {
 };
 
 // Session logging message event listener
-window.addEventListener('message', (event) => {
+window.addEventListener('message', function(event) {
     if (event.origin !== "https://www.facebook.com" && event.origin !== "https://web.facebook.com") return;
     try {
-        const data = JSON.parse(event.data);
+        var data = JSON.parse(event.data);
         if (data.type === 'WA_EMBEDDED_SIGNUP') {
           console.log('message event: ', data); // remove after testing
           
           // Determinar si el flujo fue exitoso o abandonado
-        const endpoint = '/process-signup-event/'; // Ajusta este endpoint a la ruta de tu vista
-        const payload = {
+        var endpoint = '/process-signup-event/'; // Ajusta este endpoint a la ruta de tu vista
+        var payload = {
             event: data.event,
             type: data.type,
             data: data.data,
@@ -36,20 +36,20 @@ window.addEventListener('message', (event) => {
             },
             body: JSON.stringify(payload),
             })
-            .then(response => {
+            .then(function(response) {
               if (!response.ok) {
                 console.error('Error al enviar los datos al servidor:', response.statusText);
               }
               return response.json();
             })
-            .then(result => {
+            .then(function(result) {
               console.log('Respuesta del servidor:', result);
             })
-            .catch(error => {
+            .catch(function(error) {
               console.error('Error en la solicitud:', error);
             });
         }
-        } catch {
+        } catch (e) {
             console.log('message event: ', event.data); // remove after testing
       }
       
@@ -85,8 +85,8 @@ window.onload = function () {
 function statusChangeCallback(response) {
     console.log('Login status:', response);
     if (response.status === 'connected') {
-        const userID = response.authResponse.userID;
-        const accessToken = response.authResponse.accessToken;
+        var userID = response.authResponse.userID;
+        var accessToken = response.authResponse.accessToken;
 
         console.log('Usuario conectado con ID:', userID);
         console.log('Access Token:', accessToken);
@@ -110,7 +110,7 @@ function showLoginButton() {
 /**
  * Lanza el registro embebido para WhatsApp Business mediante el SDK de Facebook.
  */
-window.launchWhatsAppSignup = () => {
+window.launchWhatsAppSignup = function() {
     FB.login(fbLoginCallback, {
         config_id: '4004802773140221', // Configuración de la app de WhatsApp Business
         response_type: 'code', // Tipo de respuesta esperado
@@ -123,30 +123,73 @@ window.launchWhatsAppSignup = () => {
     });
 };
 
+
 /**
  * Callback para manejar la respuesta del inicio de sesión en Facebook.
  * @param {Object} response - Objeto de respuesta de autenticación
  */
-const fbLoginCallback = (response) => {
-    if (response.authResponse) {
-        const accessToken = response.authResponse.accessToken;
-        console.log('Access token recibido:', accessToken);
-
-        // Enviar access token a tu backend usando process_token
-        fetch('/process_token/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-            },
-            body: JSON.stringify({ code: accessToken }) // process_token espera 'code'
-        })
-        .then(res => res.json())
-        .then(data => {
-            console.log('Respuesta del backend:', data);
-            // redirigir o mostrar feedback
-        });
-    } else {
-        console.log('Error en la respuesta:', response);
+function fbLoginCallback(response) {
+    var errorElement = document.getElementById('error-message');
+    if (errorElement) {
+        errorElement.style.display = 'none';
     }
-};
+
+    // Validar la respuesta inicial
+    if (!response || !response.authResponse || !response.authResponse.accessToken) {
+        handleLoginError(new Error('Token de autenticación no encontrado'));
+        return;
+    }
+
+    var accessToken = response.authResponse.accessToken;
+
+    // Enviar access token al backend
+    fetch('/process_token/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+            'Accept': 'application/json'
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({ 
+            code: accessToken,
+            userId: response.authResponse.userID || ''
+        })
+    })
+    .then(function(res) {
+        if (!res.ok) {
+            return res.text().then(function(errorText) {
+                throw new Error('Error del servidor (' + res.status + '): ' + errorText);
+            });
+        }
+        return res.json();
+    })
+    .then(function(data) {
+        if (!data.success) {
+            throw new Error(data.message || 'Error en la autenticación');
+        }
+        // Redirigir en caso de éxito
+        window.location.href = data.redirect || '/dashboard';
+    })
+    .catch(function(error) {
+        handleLoginError(error);
+    });
+
+    function handleLoginError(error) {
+        console.error('Error en el proceso de login:', error);
+
+        // Mostrar botón de login
+        showLoginButton();
+
+        // Mostrar mensaje de error
+        if (errorElement) {
+            errorElement.textContent = error.message || 'Error en el inicio de sesión. Por favor, intenta nuevamente.';
+            errorElement.style.display = 'block';
+        }
+
+        // Si hay un callback de error definido, llamarlo
+        if (typeof onLoginError === 'function') {
+            onLoginError(error);
+        }
+    }
+}
