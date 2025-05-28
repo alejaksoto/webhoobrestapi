@@ -8,7 +8,9 @@ RUN apk add --no-cache \
     mariadb-dev \
     gcc \
     musl-dev \
-    python3-dev
+    python3-dev \
+    bash \
+    netcat-openbsd  
 
 # Establece el directorio de trabajo
 WORKDIR /app
@@ -21,17 +23,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copia el código del proyecto
 COPY . .
-
-# Exponer el puerto de la aplicación
-
-
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
 
 
 EXPOSE 8000
 
-ENTRYPOINT ["/entrypoint.sh"]
 # Ejecutar migraciones y levantar el servidor con Gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "proyecto_django.wsgi:application"]
 

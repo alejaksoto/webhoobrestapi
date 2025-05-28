@@ -1,22 +1,14 @@
 #!/bin/sh
-
-# Esperar a que la base de datos esté disponible (opcional si usas contenedor para DB)
-# echo "Esperando la base de datos..."
-# sleep 10
+echo "Esperando a que la base de datos esté lista..."
+while ! nc -z db 3306; do
+  sleep 1
+done
 
 echo "Aplicando migraciones..."
 python manage.py migrate
 
-echo "Recolectando archivos estáticos..."
-python manage.py collectstatic --noinput
-
 echo "Creando superusuario si no existe..."
-python manage.py shell << EOF
-from django.contrib.auth import get_user_model
-User = get_user_model()
-if not User.objects.filter(username='mayra.soto').exists():
-    User.objects.create_superuser('mayra.soto', 'mayra.soto', 'Claro2025*')
-EOF
+python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'mayra.soto@claro.com.co', 'Claro2025*')"
 
-echo "Levantando el servidor con Gunicorn..."
-exec gunicorn proyecto_django.wsgi:application --bind 0.0.0.0:8000
+echo "Levantando servidor Gunicorn..."
+exec gunicorn --bind 0.0.0.0:8000 proyecto_django.wsgi:application

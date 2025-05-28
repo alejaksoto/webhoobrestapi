@@ -87,16 +87,17 @@ WSGI_APPLICATION = 'proyecto_django.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  # MariaDB usa el mismo driver que MySQL
-        'NAME': 'midb',
-        'USER': 'mayra.soto',
-        'PASSWORD': 'Claro2025*',
-        'HOST': 'host.docker.internal',
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT', '3306'),
         'OPTIONS': {
+            'ssl': {'ca': '/etc/ssl/certs/ca-certificates.crt'},
             'charset': 'utf8mb4',
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
-        }
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
