@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 import logging
+import ssl
 
 AUTH_USER_MODEL = 'inicio.Usuario'
 USERNAME_FIELD = 'username'
@@ -84,22 +85,29 @@ WSGI_APPLICATION = 'proyecto_django.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+print("Ruta del certificado SSL usada:", os.path.join(BASE_DIR, 'certs', 'BaltimoreCyberTrustRoot.crt.pem'))
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT', '3306'),
+        'NAME': 'solucionmeta-database',
+        'USER': 'cpplasidso',
+        'PASSWORD': 'Claro2025*',
+        'HOST': 'solucionmeta-server.mysql.database.azure.com',
+        'PORT': '3306',
         'OPTIONS': {
-            'ssl': {'ssl-ca': '/path/to/BaltimoreCyberTrustRoot.crt.pem'},
             'charset': 'utf8mb4',
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+            'ssl': {
+                'ca': os.path.join(BASE_DIR, 'certs', 'DigiCertGlobalRootCA.crt.pem'),
+                'cert_reqs': ssl.CERT_REQUIRED
+            },   
     }
-}
+}}
+ca_path = os.path.join(BASE_DIR, 'certs', 'DigiCertGlobalRootCA.crt.pem')
+if not os.path.exists(ca_path):
+    raise FileNotFoundError(f"Certificado no encontrado en: {ca_path}")
+
 
 
 # Password validation

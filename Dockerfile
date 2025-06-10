@@ -20,7 +20,8 @@ COPY requirements.txt .
 
 # Instala dependencias de Python
 RUN pip install --no-cache-dir -r requirements.txt
-
+COPY certs/ /app/certs
+# Copia el archivo de configuración de Django
 # Copia el código del proyecto
 COPY . .
 COPY entrypoint.sh /entrypoint.sh

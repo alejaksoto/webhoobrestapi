@@ -1,6 +1,6 @@
 #!/bin/sh
 echo "Esperando a que la base de datos esté lista..."
-while ! nc -z db 3306; do
+while ! nc -z solucionmeta-server.mysql.database.azure.com 3306; do
   sleep 1
 done
 
